@@ -270,10 +270,11 @@ class ElementWriter extends EventEmitter {
 	addFragment(block, useBlockXOffset, useBlockYOffset, dontUpdateContextPosition) {
 		let ctx = this.context();
 		let page = ctx.getCurrentPage();
+    let ignoreBlockXOffset = useBlockXOffset === null;
 
-		if (!useBlockXOffset && block.height > ctx.availableHeight) {
-			return false;
-		}
+    if (!ignoreBlockXOffset && !useBlockXOffset && block.height > ctx.availableHeight) {
+      return false;
+    }
 
 		block.items.forEach(item => {
 			switch (item.type) {

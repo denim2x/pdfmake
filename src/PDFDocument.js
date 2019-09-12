@@ -1,5 +1,6 @@
 import PDFKit from 'pdfkit';
 import { isArray } from './helpers/variableType';
+import { resolve } from './helpers/node';
 
 const typeName = (bold, italics) => {
 	let type = 'normal';
@@ -48,7 +49,7 @@ class PDFDocument extends PDFKit {
 			if (!isArray(def)) {
 				def = [def];
 			}
-			this.fontCache[familyName][type] = this.font(...def)._font;
+			this.fontCache[familyName][type] = this.font(...def.map(resolve))._font;
 		}
 
 		return this.fontCache[familyName][type];

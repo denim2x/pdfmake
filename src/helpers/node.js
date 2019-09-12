@@ -1,4 +1,10 @@
+import path from 'path';
 import { isNumber, isArray } from './variableType';
+
+const rootdir = path.dirname(process.argv[1]);
+export function resolve(filename) {
+  return path.join(rootdir, filename);
+}
 
 function fontStringify(key, val) {
 	if (key === 'font') {

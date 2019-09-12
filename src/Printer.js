@@ -28,6 +28,7 @@ class PdfPrinter {
 	 */
 	constructor(fontDescriptors) {
 		this.fontDescriptors = fontDescriptors;
+
 	}
 
 	/**

@@ -81,40 +81,45 @@ class PageElementWriter extends ElementWriter {
 	}
 
 	commitUnbreakableBlock(forcedX, forcedY) {
-		if (--this.transactionLevel === 0) {
-			let unbreakableContext = this.context();
-			this.popContext();
+    let ignoreX = false;
+    if (isNaN(forcedX)) {
+      forcedX = undefined;
+      ignoreX = null;
+    }
+    if (--this.transactionLevel === 0) {
+      let unbreakableContext = this.context();
+      this.popContext();
+      let nbPages = unbreakableContext.pages.length;
 
-			let nbPages = unbreakableContext.pages.length;
-			if (nbPages > 0) {
-				// no support for multi-page unbreakableBlocks
-				let fragment = unbreakableContext.pages[0];
-				fragment.xOffset = forcedX;
-				fragment.yOffset = forcedY;
+      if (nbPages > 0) {
+        // no support for multi-page unbreakableBlocks
+        let fragment = unbreakableContext.pages[0];
+        fragment.xOffset = forcedX;
+        fragment.yOffset = forcedY; //TODO: vectors can influence height in some situations
 
-				//TODO: vectors can influence height in some situations
-				if (nbPages > 1) {
-					// on out-of-context blocs (headers, footers, background) height should be the whole DocumentContext height
-					if (forcedX !== undefined || forcedY !== undefined) {
-						fragment.height = unbreakableContext.getCurrentPage().pageSize.height - unbreakableContext.pageMargins.top - unbreakableContext.pageMargins.bottom;
-					} else {
-						fragment.height = this.context().getCurrentPage().pageSize.height - this.context().pageMargins.top - this.context().pageMargins.bottom;
-						for (let i = 0, l = this.repeatables.length; i < l; i++) {
-							fragment.height -= this.repeatables[i].height;
-						}
-					}
-				} else {
-					fragment.height = unbreakableContext.y;
-				}
+        if (nbPages > 1) {
+          // on out-of-context blocs (headers, footers, background) height should be the whole DocumentContext height
+          if (forcedX !== undefined || forcedY !== undefined) {
+            fragment.height = unbreakableContext.getCurrentPage().pageSize.height - unbreakableContext.pageMargins.top - unbreakableContext.pageMargins.bottom;
+          } else {
+            fragment.height = this.context().getCurrentPage().pageSize.height - this.context().pageMargins.top - this.context().pageMargins.bottom;
 
-				if (forcedX !== undefined || forcedY !== undefined) {
-					super.addFragment(fragment, true, true, true);
-				} else {
-					this.addFragment(fragment);
-				}
-			}
-		}
-	}
+            for (let i = 0, l = this.repeatables.length; i < l; i++) {
+              fragment.height -= this.repeatables[i].height;
+            }
+          }
+        } else {
+          fragment.height = unbreakableContext.y;
+        }
+
+        if (forcedX !== undefined || forcedY !== undefined) {
+          super.addFragment(fragment, true, true, true);
+        } else {
+          this.addFragment(fragment, ignoreX);
+        }
+      }
+    }
+  }
 
 	currentBlockToRepeatable() {
 		let unbreakableContext = this.context();
