@@ -509,7 +509,7 @@ class TableProcessor {
 
 			writer.addListener('pageChanged', pageChangedCallback);
 
-			writer.commitUnbreakableBlock(NaN);
+			writer.commitUnbreakableBlock();
 
 			writer.removeListener('pageChanged', pageChangedCallback);
 		}

@@ -17,6 +17,8 @@ class DocumentContext extends EventEmitter {
 		this.availableHeight = 0;
 		this.page = -1;
 
+    this.canBreak = true;
+    
 		this.snapshots = [];
 		this.endingCell = null;
 		this.backgroundLength = [];
