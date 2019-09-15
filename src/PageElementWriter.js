@@ -96,7 +96,13 @@ class PageElementWriter extends ElementWriter {
             }
           }
         } else {
-          fragment.height = unbreakableContext.y;
+          const ctx = this.context();
+          const height = ctx.getCurrentPage().pageSize.height - ctx.pageMargins.bottom;
+          if (unbreakableContext.y < height) {  
+            fragment.height = unbreakableContext.y;
+          } else {
+            fragment.height = height - ctx.y;   // FIXME: Split long paragraphs, if present
+          }
         }
 
         if (forcedX !== undefined || forcedY !== undefined) {
