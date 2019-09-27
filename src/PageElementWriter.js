@@ -108,7 +108,7 @@ class PageElementWriter extends ElementWriter {
         if (forcedX !== undefined || forcedY !== undefined) {
           super.addFragment(fragment, true, true, true);
         } else {
-          this.addFragment(fragment, false, true, false);
+          this.addFragment(fragment);
         }
       };
 

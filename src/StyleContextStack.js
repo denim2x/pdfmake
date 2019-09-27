@@ -166,6 +166,10 @@ class StyleContextStack {
 		return this.defaultStyle && this.defaultStyle[property];
 	}
 
+  getStyle(name) {
+    return this.styleDictionary[name] || this.defaultStyle;
+  }
+
 	/**
 	 * @param {object} item
 	 * @param {StyleContextStack} styleContextStack

@@ -153,6 +153,8 @@ class LayoutBuilder {
 			this.addBackground(background);
 		});
 
+		this.writer._docMeasure = this.docMeasure;
+
 		this.addBackground(background);
 		this.processNode(docStructure);
 		this.addHeadersAndFooters(header, footer);
@@ -296,7 +298,7 @@ class LayoutBuilder {
 		}
 	}
 
-	processNode(node) {
+	processNode(node, unbreakable) {
 		const applyMargins = callback => {
 			let margin = node._margin;
 
@@ -325,6 +327,7 @@ class LayoutBuilder {
 		decorateNode(node);
 
 		applyMargins(() => {
+			// let unbreakable = node.unbreakable || unbreakable;
 			let unbreakable = node.unbreakable;
 			if (unbreakable) {
 				this.writer.beginUnbreakableBlock();
@@ -352,7 +355,7 @@ class LayoutBuilder {
 				this.processList(true, node);
 			} else if (node.table) {
 				this.processTable(node);
-			} else if (node.text !== undefined) {
+			} else if (node.text !== undefined) {   //console.log(node);
 				this.processLeaf(node);
 			} else if (node.toc) {
 				this.processToc(node);
@@ -418,7 +421,7 @@ class LayoutBuilder {
 		}
 	}
 
-	processRow(columns, widths, gaps, tableBody, tableRow, height) {
+	processRow(columns, widths, gaps, tableBody, tableRow, height, unbreakable) {
 		const storePageBreakData = data => {
 			let pageDesc;
 
@@ -460,7 +463,7 @@ class LayoutBuilder {
 
 			this.writer.context().beginColumn(width, leftOffset, getEndingCell(column, i));
 			if (!column._span) {
-				this.processNode(column);
+				this.processNode(column, unbreakable);
 				addAll(positions, column.positions);
 			} else if (column._columnEndingContext) {
 				// row-span ending
@@ -541,7 +544,7 @@ class LayoutBuilder {
 	// tables
 	processTable(tableNode) {
 		let processor = new TableProcessor(tableNode);
-
+		let unbreakable = processor.dontBreakRows;
 		processor.beginTable(this.writer);
 
 		let rowHeights = tableNode.table.heights;
@@ -561,7 +564,7 @@ class LayoutBuilder {
 				height = undefined;
 			}
 
-			let result = this.processRow(tableNode.table.body[i], tableNode.table.widths, tableNode._offsets.offsets, tableNode.table.body, i, height);
+			let result = this.processRow(tableNode.table.body[i], tableNode.table.widths, tableNode._offsets.offsets, tableNode.table.body, i, height, unbreakable);
 			addAll(tableNode.positions, result.positions);
 
 			processor.endRow(i, this.writer, result.pageBreaks);

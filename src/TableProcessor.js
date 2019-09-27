@@ -7,6 +7,8 @@ class TableProcessor {
 	}
 
 	beginTable(writer) {
+    this._styles = writer._docMeasure.styleStack;
+
 		const getTableInnerContentWidth = () => {
 			let width = 0;
 
@@ -115,6 +117,26 @@ class TableProcessor {
 		this.drawHorizontalLine(0, writer);
 	}
 
+  getRow(index) {
+    return this.rows[index];
+  }
+
+  getUnbreakable(index) {
+    const row = this.getRow(index);
+    const breakable = row && row.some(c => c.breakable);
+    return this.dontBreakRows && !breakable;
+  }
+
+  _getDelimiter(index) {
+    let row = this.getRow(index);
+    return Array.isArray(row) && row.some(c => {
+      if (c.style)  {
+        const style = this._styles.getStyle(c.style);
+        return style && style._delimiter;
+      }
+    });
+  }
+
 	onRowBreak(rowIndex, writer) {
 		return () => {
 			let offset = this.rowPaddingTop + (!this.headerRows ? this.topLineWidth : 0);
@@ -131,7 +153,7 @@ class TableProcessor {
 
 		this.rowCallback = this.onRowBreak(rowIndex, writer);
 		writer.addListener('pageChanged', this.rowCallback);
-		if (this.dontBreakRows) {
+		if (this.getUnbreakable(rowIndex)) {
 			writer.beginUnbreakableBlock();
 		}
 		this.rowTopY = writer.context().y;
@@ -351,6 +373,7 @@ class TableProcessor {
 		writer.context().moveDown(this.layout.paddingBottom(rowIndex, this.tableNode));
 		writer.context().availableHeight += this.reservedAtBottom;
 
+    let unbreakable = this.getUnbreakable(rowIndex);
 		let endingPage = writer.context().page;
 		let endingY = writer.context().y;
 
@@ -441,11 +464,11 @@ class TableProcessor {
 							widthRightBorder = 0;
 						}
 
-						let x1f = this.dontBreakRows ? xs[i].x + widthLeftBorder : xs[i].x + (widthLeftBorder / 2);
-						let y1f = this.dontBreakRows ? y1 : y1 - (hzLineOffset / 2);
-						let x2f = xs[i + 1].x + widthRightBorder;
-						let y2f = this.dontBreakRows ? y2 + this.bottomLineWidth : y2 + (this.bottomLineWidth / 2);
-						writer.addVector({
+						let x1f = unbreakable ? xs[i].x + widthLeftBorder : xs[i].x + widthLeftBorder / 2;
+            let y1f = unbreakable ? y1 : y1 - hzLineOffset / 2;
+            let x2f = xs[i + 1].x + widthRightBorder;
+            let y2f = unbreakable ? y2 + this.bottomLineWidth : y2 + this.bottomLineWidth / 2;
+            writer.addVector({
 							type: 'rect',
 							x: x1f,
 							y: y1f,
@@ -500,7 +523,7 @@ class TableProcessor {
 			this.headerRepeatable = writer.currentBlockToRepeatable();
 		}
 
-		if (this.dontBreakRows) {
+		if (unbreakable) {
 			const pageChangedCallback = () => {
 				if (!this.headerRows && this.layout.hLineWhenBroken !== false) {
 					this.drawHorizontalLine(rowIndex, writer);
