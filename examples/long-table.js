@@ -22,19 +22,35 @@ function makeTable(row_size, rows) {
       widths: ['*'],
       body: [
         [{ text: header, style: 'tableHeader' }],
-        ...`${ `${text}\n`.repeat(row_size) }|`.repeat(rows).split('|').map(e => [e])
+        ...`${ `${text}\n`.repeat(row_size) }|`.repeat(rows).split('|').map((e, i) => [`${i+1}. ${e}`]).slice(0, -1)
       ]
     }
   };
 }
 
+function makeRows(row_size, rows, breakable) {
+  let header = rows == 1 ? `1 row of ${row_size} paragraphs` : `${rows} rows of ${row_size} paragraphs each`;
+  return [
+    [{ text: header, style: 'tableHeader' }],
+    ...`${ `${text}\n`.repeat(row_size) }|`.repeat(rows).split('|').map((e, i) => [{ text: `${i+1}. ${e}`, breakable }]).slice(0, -1)
+  ];
+}
+
 var docDefinition = {
 	content: [
-    { text: 'Sample document with unbreakable table rows', style: 'header' },
-		{ text: 'Table with a very long row', style: 'header' },
-    makeTable(20, 1),
-    { text: 'Table with many large rows', style: 'header' },
-    makeTable(3, 10)
+		{ text: 'Table with very long rows', style: 'header' },
+    {
+      style: 'tableExample',
+      table: {
+        dontBreakRows: true,
+        // keepWithHeaderRows: 1,
+        widths: ['*'],
+        body: [
+          ...makeRows(6, 1, true),
+          ...makeRows(2, 4)
+        ]
+      }
+    }
 	],
 	styles: {
 		header: {
@@ -53,7 +69,8 @@ var docDefinition = {
 		tableHeader: {
 			bold: true,
 			fontSize: 13,
-			color: 'black'
+			color: 'black',
+      _delimiter: true
 		}
 	},
 	defaultStyle: {
